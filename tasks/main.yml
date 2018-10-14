@@ -37,7 +37,7 @@
   enablerepo: "remi,remi-php71"
 
 
-- name:
+- name:  disable port 9000
   lineinfile:
      path: /etc/php-fpm.d/www.conf
      regexp: '^listen = 127.0.0.1:9000'
