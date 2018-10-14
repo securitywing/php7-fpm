@@ -1,0 +1,84 @@
+---
+# tasks file for php7.1
+- name: install  remi repo
+  yum:
+    name: "http://rpms.remirepo.net/enterprise/remi-release-7.rpm"
+    state: present
+
+- name: install yum-utils
+  yum:
+    name: yum-utils
+    state: present
+
+- name: Enable php71 repository
+  command:  "yum-config-manager --enable remi-php71"
+
+
+- name: Install package with multiple repos enabled
+  package: name="{{ item }}" state=latest
+  with_items:
+     - php-fpm
+     - php-common
+     - php-opcache
+     - php-pecl-apcu
+     - php-cli
+     - php-pear
+     - php-pdo
+     - php-mysqlnd
+     - php-pgsql
+     - php-pecl-mongodb
+     - php-pecl-redis
+     - php-pecl-memcache
+     - php-pecl-memcached
+     - php-gd
+     - php-mbstring
+     - php-mcrypt
+     - php-xml
+  enablerepo: "remi,remi-php71"
+
+
+- name:
+  lineinfile:
+     path: /etc/php-fpm.d/www.conf
+     regexp: '^listen = 127.0.0.1:9000'
+     line: ';listen = 127.0.0.1:9000'
+     backrefs: yes
+- name:  php-fpm sock
+  lineinfile:
+     path: /etc/php-fpm.d/www.conf
+     insertafter: '^;listen = 127.0.0.1:9000'
+     line: 'listen = /var/run/php-fpm/php-fpm.sock'
+  notify: restart php-fpm
+
+- name: listen owner apache
+  lineinfile:
+     path: /etc/php-fpm.d/www.conf
+     regexp: '^;listen.owner'
+     line: 'listen.owner = apache'
+     backrefs: yes
+- name: listen group apache
+  lineinfile: 
+      path: /etc/php-fpm.d/www.conf
+      regexp: '^;listen.group'
+      line: 'listen.group = apache'
+      backrefs: yes
+- name: listen mode
+  lineinfile: 
+      path: /etc/php-fpm.d/www.conf
+      regexp: ';listen.mode'
+      line: 'listen.mode = 0660'
+      backrefs: yes
+- name: copy php.conf file into /etc/httpd/conf.d directory
+  copy:
+      src: php7-fpm-apache/files/php.conf
+      dest: /etc/httpd/conf.d
+      owner: root
+      group: root
+      mode: 0644
+
+- name: start php-fpm on boot
+  service:
+      name: php-fpm.service
+      state: started
+      enabled: yes
+
