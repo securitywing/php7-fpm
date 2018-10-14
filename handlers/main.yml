@@ -4,3 +4,7 @@
   service:
     name: php-fpm.service
     state: restarted
+- name: restart httpd
+  service:
+     name: httpd
+     state: restarted

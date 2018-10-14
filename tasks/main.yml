@@ -70,7 +70,7 @@
       backrefs: yes
 - name: copy php.conf file into /etc/httpd/conf.d directory
   copy:
-      src: php7-fpm-apache/files/php.conf
+      src: php7-fpm/files/php.conf
       dest: /etc/httpd/conf.d
       owner: root
       group: root
@@ -82,3 +82,16 @@
       state: started
       enabled: yes
 
+- name: Comment out LoadModule mpm_prefork_module
+  replace:
+      path: /etc/httpd/conf.modules.d/00-mpm.conf
+      regexp: '(.*LoadModule mpm_prefork_module modules/mod_mpm_prefork.so.*)'
+      replace: '#\1'
+  notify: restart php-fpm
+
+- name: uncommnet the mpm_event_module
+  replace:
+      path: /etc/httpd/conf.modules.d/00-mpm.conf
+      regexp: '^#(.*LoadModule mpm_event_module modules/mod_mpm_event.so.*)'
+      replace: '\1'
+  notify: restart httpd
